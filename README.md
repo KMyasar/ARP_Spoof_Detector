@@ -1,97 +1,359 @@
+# ARP Spoof Detector
+[![Language](https://img.shields.io/badge/language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language)) [![Platform](https://img.shields.io/badge/platform-Linux-green.svg)](https://www.linux.org/) [![Version](https://img.shields.io/badge/version-0.1-orange.svg)](https://github.com/yourusername/arp-spoof-detector/releases)
 
-# Packet Sniffer
-
-This is a basic packet sniffer program written in C that uses the `libpcap` library to capture and display basic information about network packets on a specified interface.
+A professional network security tool written in C that monitors ARP (Address Resolution Protocol) traffic to detect potential ARP spoofing attacks in real-time. This tool uses libpcap for packet capture and provides comprehensive monitoring capabilities for network administrators and security professionals.
 
 ## Features
 
-* **Device Listing:** Lists all available network interfaces on the system.
-* **Interface Selection:** Allows the user to select a specific network interface to capture packets from.
-* **Packet Capture:** Captures the first packet received on the selected interface.
-* **Ethernet Header Analysis:** Parses and displays information from the Ethernet header, including:
-    * Packet length.
-    * Capture timestamp.
-    * Ethernet header length (which is always 14 bytes).
-    * Ethernet type (identifies the protocol of the payload, e.g., IP or ARP).
-    * Destination MAC address.
-    * Source MAC address.
-* **Network Information:** Retrieves and displays the network address and netmask associated with the selected interface.
+-   **Real-time ARP Monitoring** - Continuous packet capture and analysis
+-   **Spoofing Detection Algorithm** - Frequency-based attack detection
+-   **Professional Logging** - Detailed packet information and timestamps
+-   **Interface Discovery** - Automatic detection of available network interfaces
+-   **Memory Safe** - Proper memory management and leak prevention
+-   **Root Privilege Checking** - Security validation for packet capture
+-   **Cross-platform** - Compatible with Linux distributions
 
-## Prerequisites
+## Table of Contents
 
-* **libpcap Development Libraries:** You need to have the `libpcap` development libraries installed on your system. The package name might vary depending on your distribution (e.g., `libpcap-dev` on Debian/Ubuntu, `libpcap-devel` on Fedora/CentOS).
+- [Installation](#installation)
+- [Usage](#usage)
+- [How It Works](#how-it-works)
+- [Command Line Options](#command-line-options)
+- [Examples](#examples)
+- [Security Considerations](#security-considerations)
+- [Acknowledgments](#acknowledgments)
 
-	***Debian/Ubuntu***
 
-	```bash
-	sudo apt install libpcap
-	```
-	
-* **GCC:** A C compiler like GCC is required to compile the code.
-	
+## Installation
 
-## Compilation
+### Prerequisites
 
-1.  Save the provided C code as a `.c` file (e.g., `sniffer.c`).
+Before compiling, ensure you have the following dependencies installed:
 
-2.  Open your terminal and navigate to the directory where you saved the file.
+#### Ubuntu/Debian
 
-3.  Compile the code using GCC, linking against the `libpcap` library:
-    ```bash
-    gcc sniffer.c -o sniffer -lpcap
-    ```
+```bash
+sudo apt-get update
+sudo apt-get install build-essential libpcap-dev libnotify-bin
 
-## Running the Application
+```
 
-1.  Run the compiled executable with root privileges (or using `sudo`) because capturing network packets typically requires elevated permissions:
-    ```bash
-    sudo ./sniffer
-    ```
+#### CentOS/RHEL/Fedora
 
-2.  The program will first list the available network interfaces along with a numerical index.
+```bash
+sudo yum install gcc libpcap-devel libnotify
+# or for newer versions
+sudo dnf install gcc libpcap-devel libnotify
 
-3.  Enter the number corresponding to the interface you want to monitor and press Enter.
+```
 
-4.  The program will then:
-    * Display the network address and netmask of the selected interface.
-    * Capture the first packet received on that interface.
-    * Print the length of the captured packet.
-    * Print the timestamp when the packet was received.
-    * Print the Ethernet header length.
-    * Print the Ethernet type (in hexadecimal and decimal), indicating whether it's an IP packet, an ARP packet, or another type.
-    * Print the destination and source MAC addresses in hexadecimal format (colon-separated).
+#### Arch Linux
 
-## Explanation of the Code
+```bash
+sudo pacman -S gcc libpcap libnotify
 
-* **Includes:** The code includes necessary header files for standard input/output, memory allocation, system types, the `libpcap` library, network protocols (IP, Ethernet), error handling, socket programming, address conversion, and time functions.
-* **`get_inet()` Function:**
-    * Takes the device name and an error buffer as input.
-    * Opens the specified network interface in promiscuous mode (captures all packets) using `pcap_open_live()`.
-    * Captures the next available packet using `pcap_next()`.
-    * If a packet is captured, it prints the packet length and timestamp.
-    * It then casts the beginning of the packet data to an `ether_header` structure to access Ethernet header fields.
-    * It prints the Ethernet type and identifies if it's an IP (`ETHERTYPE_IP`) or ARP (`ETHERTYPE_ARP`) packet.
-    * Finally, it extracts and prints the destination and source MAC addresses.
-    * The packet capture descriptor is closed using `pcap_close()`.
-* **`get_packet()` Function:**
-    * Takes the device name and an error buffer as input.
-    * Uses `pcap_lookupnet()` to get the network address and netmask associated with the given interface.
-    * Converts the network address and netmask from integer format to human-readable dotted-decimal notation using `inet_ntoa()`.
-    * Prints the obtained network address and netmask.
-* **`main()` Function:**
-    * Declares variables for the device name, error buffer, a list of network interfaces (`pcap_if_t`), a temporary interface pointer, an interface counter, and the user's choice.
-    * Uses `pcap_findalldevs()` to get a list of all available network interfaces. If an error occurs, it prints an error message and exits.
-    * Iterates through the list of interfaces and prints their index and name to the user.
-    * Prompts the user to select an interface by entering its corresponding number.
-    * Iterates through the interface list again to find the interface name based on the user's input.
-    * If an invalid interface is selected, it prints an error message and frees the interface list.
-    * Frees the dynamically allocated list of interfaces using `pcap_freealldevs()`.
-    * Calls the `get_packet()` and `get_inet()` functions to retrieve network information and capture and analyze the first packet on the selected interface.
-    * Returns 0 to indicate successful execution.
+```
 
-## Important Notes
+### Compilation
 
-* **Permissions:** Running this program requires root or `sudo` privileges to capture network traffic.
-* **First Packet Only:** This program only captures and analyzes the *first* packet received after selecting the interface. To continuously capture packets, you would need to use a loop with `pcap_next()` or `pcap_loop()`.
-* **Error Handling:** The error handling in this basic example is limited. In a more robust application, you would want to handle errors more comprehensively.
-* **Packet Interpretation:** This program only examines the Ethernet header. To analyze the data within IP, TCP, UDP, or other protocols, you would need to add more code to parse the subsequent layers of the network packet.
+1.  Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/arp-spoof-detector.git
+cd arp-spoof-detector
+
+```
+
+2.  Compile the program:
+
+```bash
+gcc -o arp_detector arp_detector.c -lpcap
+
+```
+
+3.  Make executable:
+
+```bash
+chmod +x arp_detector
+
+```
+
+### Alternative Build Options
+
+**Debug build:**
+
+```bash
+gcc -g -DDEBUG -o arp_detector arp_detector.c -lpcap
+
+```
+
+**Optimized build:**
+
+```bash
+gcc -O2 -o arp_detector arp_detector.c -lpcap
+
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+# List available network interfaces
+./arp_detector -l
+
+# Monitor specific interface (requires root)
+sudo ./arp_detector -i eth0
+
+# Show help information
+./arp_detector -h
+
+# Display version information
+./arp_detector -v
+
+```
+
+### Important Notes
+
+ **Root privileges are required** for packet capture operations  
+ **Only use on networks you own** or have explicit permission to monitor  
+ **Educational/Research purposes** - ensure compliance with local laws
+
+## How It Works
+
+### Detection Algorithm
+
+The ARP Spoof Detector uses a frequency-based detection method:
+
+1.  **Packet Capture**: Monitors specified network interface for ARP packets
+2.  **Time Window Analysis**: Counts packets within a 20-second sliding window
+3.  **Threshold Detection**: Triggers alert when >10 packets detected in window
+4.  **Alert Generation**: Displays detailed information about potential attacks
+
+### ARP Spoofing Overview
+
+ARP spoofing is a type of attack where malicious actors send falsified ARP messages over a local network, linking their MAC address with the IP address of a legitimate device. This can lead to:
+
+-   Man-in-the-middle attacks
+-   Traffic interception
+-   Network disruption
+-   Data theft
+
+### Detection Metrics
+| Metric | Value | Description |
+| :------- | :------: | -------: |
+| Time Window | 20 seconds | Packet counting interval |
+| Packet Threshold | 10 packets | Alert trigger point |
+| Reset Behavior | Automatic | Counter resets after time gap |
+
+## Command Line Options
+| Option | Long Form | Description |
+| :------- | :------: | -------: |
+| `-h` | `--help` | Display help information and usage examples |
+| `-l`| `--lookup` | List all available network interfaces |
+| `-i <interface>` | `--interface <interface>` | Specify network interface to monitor|
+|`-v`|`--version`|Show version and program information|
+
+## Examples
+
+### 1. List Network Interfaces
+
+```bash
+$ ./arp_detector -l
+
+Available Network Interfaces:
+============================================
+#1: lo (Loopback)
+#2: eth0 (Ethernet)
+#3: wlan0 (Wireless)
+============================================
+Total interfaces found: 3
+
+```
+
+### 2. Monitor Ethernet Interface
+
+```bash
+$ sudo ./arp_detector -i eth0
+
+Initializing packet capture on interface: eth0
+Successfully opened interface: eth0
+Monitoring for ARP packets... (Press Ctrl+C to stop)
+Detection parameters: >10 packets in 20 seconds = ALERT
+
+=== ARP PACKET CAPTURED ===
+Packet Length: 42 bytes
+Timestamp: Wed Aug 16 10:30:56 2023
+ARP Operation: REQUEST (1)
+Sender MAC: 00:1B:44:11:3A:B7
+Sender IP:  192.168.1.100
+Target MAC: 00:00:00:00:00:00
+Target IP:  192.168.1.1
+================================
+
+```
+
+### 3. Detection Alert Example
+
+```bash
+[Wed Aug 16 10:31:15 2023] SECURITY ALERT: Potential ARP Spoofing Detected!
+Suspected Attacker - IP: 192.168.1.100, MAC: 00:1B:44:11:3A:B7
+Recommendation: Investigate network traffic immediately.
+
+```
+
+## Security Considerations
+
+### Ethical Usage
+
+-    **Use only on your own networks**
+-   **Obtain explicit permission** before monitoring
+-   **Comply with local laws** and regulations
+-   **Respect privacy** and data protection rules
+
+### Limitations
+
+-   **Detection Method**: Simple frequency-based (may have false positives)
+-   **No Active Protection**: Detection only, no prevention capabilities
+-   **Network Segment**: Can only monitor local network segment
+-   **Sophisticated Attacks**: May not detect advanced evasion techniques
+
+### Recommended Best Practices
+
+1.  **Regular Monitoring**: Run during suspicious network activity
+2.  **Baseline Establishment**: Understand normal ARP traffic patterns
+3.  **Incident Response**: Have procedures for detected attacks
+4.  **Log Analysis**: Review captured data for patterns
+5.  **Network Segmentation**: Limit ARP spoofing impact
+
+## Technical Details
+
+### System Requirements
+
+-   **Operating System**: Linux (Ubuntu 18.04+, CentOS 7+, etc.)
+-   **Architecture**: x86_64, ARM64
+-   **Memory**: Minimal (< 10MB during operation)
+-   **Network**: Raw socket access capability
+
+### Dependencies
+
+-   **libpcap**: Packet capture library
+-   **libnotify-bin**: Desktop notifications (optional)
+-   **gcc**: GNU Compiler Collection
+
+### File Structure
+
+```
+arp-spoof-detector/
+├── README.md              # This file
+├── arp_detector.c         # Main source code
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Permission Denied**
+
+```bash
+Error: Cannot open interface 'eth0': Operation not permitted
+
+```
+
+**Solution**: Run with sudo privileges
+
+**Interface Not Found**
+
+```bash
+Error: Cannot open interface 'eth1': No such device exists
+
+```
+
+**Solution**: Use `./arp_detector -l` to list available interfaces
+
+**Missing Dependencies**
+
+```bash
+Error: Missing dependency - libnotify-bin
+
+```
+
+**Solution**: Install required packages using your distribution's package manager
+
+### Debug Mode
+
+Compile with debug flags for additional information:
+
+```bash
+gcc -g -DDEBUG -o arp_detector arp_detector.c -lpcap
+
+```
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+### How to Contribute
+
+1.  Fork the repository
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`)
+3.  Commit your changes (`git commit -m 'Add amazing feature'`)
+4.  Push to the branch (`git push origin feature/amazing-feature`)
+5.  Open a Pull Request
+
+### Code Style
+
+-   Follow existing code formatting
+-   Add comprehensive comments
+-   Include function documentation
+-   Test on multiple Linux distributions
+
+### Bug Reports
+
+Please include:
+
+-   Operating system and version
+-   Compilation method used
+-   Complete error messages
+-   Steps to reproduce
+
+### Feature Requests
+
+-   Describe the use case
+-   Explain the benefit
+-   Consider security implications
+
+## Acknowledgments
+
+-   **libpcap developers** - For the excellent packet capture library
+-   **Network security community** - For research on ARP spoofing detection
+-   **Open source contributors** - For inspiration and code examples
+
+## Additional Resources
+
+### Learning Resources
+
+-   [RFC 826 - Address Resolution Protocol](https://tools.ietf.org/html/rfc826)
+-   [Wireshark ARP Analysis](https://www.wireshark.org/)
+-   [Network Security Fundamentals](https://www.sans.org/)
+
+### Related Tools
+
+-   **arpspoof** - Active ARP spoofing tool
+-   **ettercap** - Comprehensive network security suite
+-   **Wireshark** - Network protocol analyzer
+-   **tcpdump** - Command-line packet analyzer
+
+### Professional References
+
+-   [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+-   [OWASP Network Security](https://owasp.org/)
+-   [SANS Network Security](https://www.sans.org/)
+
+----------
+
+**If you find this tool useful, please consider giving it a star!**
+
+**Questions or suggestions? Open an issue or contact the maintainer.**
+
+**Remember: Use responsibly and ethically!**
